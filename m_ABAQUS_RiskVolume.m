@@ -1,4 +1,12 @@
 %% m_ABAQUS_RiskVolume Main
+% Reads and input file for a single part and the VM centroid stress for the
+% whole part, and then calculates risk volume statistics for it.
+%% Code Information
+% author      :  Robert James Scales
+% affiliation :  University of Oxford
+% date        :  2023 / 01 / 26
+% e-mail      :  robert.scales@materials.ox.ac.uk
+%% Start
 
 clear
 close all
@@ -13,6 +21,8 @@ inp_filename = "C:\Users\mans3428\OneDrive - Nexus365\ABAQUS Models\ReducedModel
 
 % Fullpath location of centroid stress report file
 stressFilename = "C:\Users\mans3428\OneDrive - Nexus365\ABAQUS Models\ReducedModels\Tests\DesignRJSElipse\200umWs\abaqus JG 200 220 VM Centroid.rpt";
+
+[path,fn,~] = fileparts(stressFilename);
 
 StressUnit = 'MPa';
 mu = char(181);
@@ -36,7 +46,7 @@ colormap(jet); colorbar
 
 Vols = ElementVolumeCalc(element(:,2:end),node);
 
-%% Stress
+%% Stress & Creating The Data Table
 
 stress0 = CentroidVM(stressFilename);
 stress = stress0(:,2);
@@ -44,29 +54,6 @@ stress = stress0(:,2);
 % histogram(Data.Stress);
 
 Data = table(Vols, stress, 'VariableNames', {'ElementVolume', 'Stress'});
-
-TF_Top10pcnt = Data.Stress >= 0.9*max(Data.Stress);
-TF_Top20pcnt = Data.Stress >= 0.8*max(Data.Stress);
-
-List_Top10pcnt = find(TF_Top10pcnt);
-String_Top10pcnt = join(string(List_Top10pcnt'), ',');
-
-List_Top20pcnt = find(TF_Top20pcnt);
-String_Top20pcnt = join(string(List_Top20pcnt'), ',');
-
-DataRV_10pcnt = Data(TF_Top10pcnt, :);
-DataRV_20pcnt = Data(TF_Top20pcnt, :);
-
-RV_10pcnt = sum(DataRV_10pcnt.ElementVolume);
-RV_20pcnt = sum(DataRV_20pcnt.ElementVolume);
-TotalVol = sum(Data.ElementVolume);
-
-Vol_10pcntRV = 100*RV_10pcnt/TotalVol;
-Vol_20pcntRV = 100*RV_20pcnt/TotalVol;
-
-[path,fn,~] = fileparts(stressFilename);
-
-% save( fullfile(path, sprintf('Vars_%s.mat', fn)) );
 
 %% Plot The Top X% Stress On Part
 
